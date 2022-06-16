@@ -1,3 +1,4 @@
+from gameGlobals import *
 
 """
 800 straightFlush = seq & flush
@@ -19,7 +20,7 @@ check for:
 class Logic:
     def __init__(self, c_cards, playerHand):
         self.cards = list(c_cards + playerHand)
-        self.score = 0
+        self.hands = {}
         print(self.cards)
 
     def sortCards(self):
@@ -46,8 +47,7 @@ class Logic:
         if sequence >= 5:
             return highCard
         else:
-            return False
-        
+            return -1
 
     def checkLike(self):
         self.sortCards()
@@ -63,6 +63,7 @@ class Logic:
                 likeInd = 1
 
             cardVal = card[0]
+        like.sort(key = lambda x: x[0])
         return like
 
     def checkFlush(self):
@@ -81,14 +82,34 @@ class Logic:
         if likeSuit >= 5:
             return highCard
         else:
-            return False
+            return -1
     
     def checkHigh(self):
         self.cards.sort(key = lambda x: x[0])
+        return self.cards[0][0]
 
     def bestPlay(self):
-        # cards = c_cards.append(playerHand)
-        pass
+        ofKind = self.checkLike()
+        high = self.checkHigh()
+
+        if ofKind[0][0] == 4:
+            score = 700 + ofKind[0][1]
+            desc = "4 of kind, " + KINDS[ofKind[0][1]] + "s"
+            self.hands[score] = desc
+        elif ofKind[0][0] == 3 & ofKind[1][0] == 2:
+            score = 600 + ofKind[0][1]
+            desc = "full house, " + KINDS[ofKind[0][1]] + "s and " + KINDS[ofKind[1][1]] + "s"
+            self.hands[score] = desc
+        elif ofKind[0][0] == 3:
+            score = 300 + ofKind[0][1]
+            desc = "3 of kind, " + KINDS[0][1] + "s"
+        elif ofKind[0][0] == 2 & ofKind[1][0] == 2:
+            ofKind.sort(key = lambda x: x[1])
+            # if highest pair matches, win is decided by other pair, if both match, win is decided by high card
+            score = 200 + 3 * ofKind[0][1] + 0.1 * ofKind[1][1] + 0.01 * high
+            desc = "two pair, " + KINDS[ofKind[0][1]] + "s and " + KINDS[ofKind[1][1]] + "s"
+        elif ofKind[0][0] == 2:
+            score = 100 + ofKind[0][1] + 0.1 * high
 
     #strike this from this class
     def winningHand(self, playerHands):
