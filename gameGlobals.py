@@ -1,4 +1,4 @@
-PLAYER_NAMES = ["gustavo", "camila", "iman", "brandon", "abduhl"]
+PLAYER_NAMES = ["gusto", "camelot", "e-man", "bcon", "kareem abdul-jabbar"]
 BUY_IN = 100
 SMALL_BLIND = 5
 BIG_BLIND = 2 * SMALL_BLIND
