@@ -12,8 +12,8 @@ gameCount = 0
 while stillFun:
     # gameDealer = players[playerList[gameCount%len(PLAYER_NAMES)]]
     game = Game(players, lineUp)
-    # players = game.playGame()
-    game.dealHands()
+    players = game.playGame()
+    # game.dealHands()
     lineUp.append(lineUp.pop(0))
     # print(gameDealer.name)
     gameCount += 1
