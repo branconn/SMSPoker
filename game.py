@@ -1,12 +1,12 @@
 from player import Player
 from deck import Deck
 from gameGlobals import *
-import gameLogic
+import gameScoring
 
 class Game:
 # a hand of poker is defined as a "Game" to prevent confusion with a player's "hand"
-    def __init__(self, table, playOrder):
-        self.playerDict = table
+    def __init__(self, playerDetails, playOrder):
+        self.playerDict = playerDetails
         self.lineUp = playOrder
         self.status = "This hand has started"
         self.gameDeck = Deck()
