@@ -1,7 +1,7 @@
 from player import Player
 from deck import Deck
 from gameGlobals import *
-import gameScoring
+from gameScoring import HandScore
 
 class Game:
 # a hand of poker is defined as a "Game" to prevent confusion with a player's "hand"
@@ -22,7 +22,6 @@ class Game:
             self.playerDict[name].hand.append(self.gameDeck.draw())
             print(self.playerDict[name].name)
             print(self.playerDict[name].hand)
-        print(len(self.gameDeck.unplayedCards))
 
     def resetPlayers(self):
     # resets the ability of players to raise
@@ -37,11 +36,13 @@ class Game:
                 resolved = False
         return resolved
 
-# TODO: currentBet and playerBets should carry through the whole Game
-    def bettingRound(self, isPreBet):
+# TODO: bug: if all checks in first round, game still does second round..
+    def bettingRound(self, bettingRound):
     # manages one round of betting until all players are either removed from play or have matching bets
-        iter = 0
-        print("Betting iteration: " + str(iter))
+        print("\n---------------------")
+        print("Betting round: " + bettingRound + "\n")
+        if bettingRound != ROUNDS[0]:
+            print(self.gameDeck.communityCards)
         self.resetPlayers()
         anotherRound = True
         reconcileRaise = False
@@ -49,14 +50,14 @@ class Game:
         while anotherRound: # Each player gets one chance to raise. Afterwards, the options are call/check & fold 
             for name in self.lineUp:
 # in the first round, 1st and 2nd betters post automatic blind bets
-                if (name == self.lineUp[0]) & (isPreBet) & (not reconcileRaise):
+                if (name == self.lineUp[0]) & (bettingRound==ROUNDS[0]) & (not reconcileRaise):
                     if self.playerDict[name].sufficientFunds(SMALL_BLIND): # checks if player can post blind
                         self.playerDict[name].playerBet = SMALL_BLIND
                         self.currentBet = SMALL_BLIND
                         self.pot += SMALL_BLIND
                         self.status = name + " posted small blind of " + str(SMALL_BLIND)
                     else: self.lineUp.remove(name) # if player cannot post blind, removed from lineUp
-                elif (name == self.lineUp[1]) & (isPreBet) & (not reconcileRaise):
+                elif (name == self.lineUp[1]) & (bettingRound==ROUNDS[0]) & (not reconcileRaise):
                     if self.playerDict[name].sufficientFunds(BIG_BLIND): # checks if player can post blind
                         self.playerDict[name].playerBet = BIG_BLIND
                         self.currentBet = BIG_BLIND
@@ -93,8 +94,8 @@ class Game:
         print("Betting round is done")
 
     def getBestHands(self):
-        for name in self.lineUp:
-            self.playerDict[name]
+        gameResults = {name: HandScore(self.gameDeck.communityCards, self.playerDict[name]) for name in self.lineUp}
+
 
 
     def winningHand(self):
@@ -107,16 +108,13 @@ class Game:
 
     def playGame(self):
         self.dealHands()
-        self.bettingRound(True)
+        self.bettingRound(ROUNDS[0])
         self.gameDeck.flip(3) # flop
-        print(self.gameDeck.communityCards)
-        self.bettingRound(False)
+        self.bettingRound(ROUNDS[1])
         self.gameDeck.flip(1) # turn
-        print(self.gameDeck.communityCards)
-        self.bettingRound(False)
+        self.bettingRound(ROUNDS[2])
         self.gameDeck.flip(1) # river
-        print(self.gameDeck.communityCards)
-        self.bettingRound(False)
+        self.bettingRound(ROUNDS[3])
         self.getBestHands(self.gameDeck.communityCards)
         
         return self.playerDict

@@ -17,10 +17,12 @@ check for:
     same kind of at least 2 "like"
     high card "high"
 """
-class Logic:
-    def __init__(self, c_cards, playerHand):
-        self.cards = list(c_cards + playerHand)
+class HandScore:
+    def __init__(self, c_cards, player):
+        self.player  = player
+        self.cards = list(c_cards + self.player.playerHand)
         self.hands = {}
+        self.score = 0
         print(self.cards)
 
     def sortCards(self):

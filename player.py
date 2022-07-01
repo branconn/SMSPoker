@@ -19,9 +19,9 @@ class Player:
             return False
         else:
             if self.raisable:
-                answer = input("Would you like to fold [f], call/check [c], or raise bet to N [rN]?")
+                answer = input(self.name + ", would you like to fold [f], call/check [c], or raise bet to N [rN]?")
             else:
-                answer = input("You can no longer raise. Would you like to fold [f] or call/check [c]?")
+                answer = input(self.name + ", you can no longer raise. Would you like to fold [f] or call/check [c]?")
             
             # player folds
             if answer == "f":

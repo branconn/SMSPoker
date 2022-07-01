@@ -1,6 +1,6 @@
 from gameGlobals import *
 from player import Player
-from gameLogic import Logic
+from gameScoring import Logic
 from game import Game
 # a = [[1,3],[2,4],[3,3],[7,1],[1,1]]
 
