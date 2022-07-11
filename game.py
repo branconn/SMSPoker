@@ -17,6 +17,7 @@ class Game:
 
     def dealHands(self):
     # assigns two cards to each player, removes cards from deck
+        print("\n\n")
         for name in self.lineUp:
             self.playerDict[name].hand.append(self.gameDeck.draw())
             self.playerDict[name].hand.append(self.gameDeck.draw())
@@ -36,7 +37,13 @@ class Game:
                 resolved = False
         return resolved
 
-# TODO: bug: if all checks in first round, game still does second round..
+    # def playerSettled(self, playerName):
+    # # returns whether a player should be called upon to f/c/r
+    #     if self.currentBet != self.playerDict[playerName].playerBet:
+    #         return False
+    #     elif 
+
+# TODO: bug: if all checks in first round, game still does second round.. ReconcileRaise should be handed per player instance
     def bettingRound(self, bettingRound):
     # manages one round of betting until all players are either removed from play or have matching bets
         print("\n---------------------")
@@ -45,6 +52,7 @@ class Game:
             print(self.gameDeck.communityCards)
         self.resetPlayers()
         anotherRound = True
+        secondRound = False
         reconcileRaise = False
         quitters = []
         while anotherRound: # Each player gets one chance to raise. Afterwards, the options are call/check & fold 
@@ -56,6 +64,7 @@ class Game:
                         self.currentBet = SMALL_BLIND
                         self.pot += SMALL_BLIND
                         self.status = name + " posted small blind of " + str(SMALL_BLIND)
+                        print(self.status)
                     else: self.lineUp.remove(name) # if player cannot post blind, removed from lineUp
                 elif (name == self.lineUp[1]) & (bettingRound==ROUNDS[0]) & (not reconcileRaise):
                     if self.playerDict[name].sufficientFunds(BIG_BLIND): # checks if player can post blind
@@ -65,23 +74,25 @@ class Game:
                         self.status = name + " posted big blind of " + str(BIG_BLIND)
                     else: self.lineUp.remove(name) # if player cannot post blind, removed from lineUp
                 else:
-                    print(self.status)
-                    playerIncrementalBet = self.playerDict[name].bettingPrompt(self.currentBet)
-                    if playerIncrementalBet < 0: #player folds (no addition to pot)
-                        self.status = name + " folded."
-                        quitters.append(name)
-                    elif playerIncrementalBet == 0: #player checks (no addition to pot)
-                        self.status = name + " checked."      
-                    elif playerIncrementalBet > 0: #player calls or raises (addition to pot)
-                        if self.playerDict[name].playerBet == self.currentBet:
-                            self.status = name + " called bet of " + str(self.currentBet)
-                            self.pot += playerIncrementalBet 
-                        elif self.playerDict[name].playerBet > self.currentBet:
-                            self.currentBet = self.playerDict[name].playerBet
-                            self.pot += playerIncrementalBet
-                            self.status = name + " raised bet to " + str(self.currentBet)
-                        else:
-                            print("Error: playerBet is bigger than currentBet and was not flagged")
+                    # possibly the most unclear conditional statement ever written?
+                    if (not (secondRound and not self.playerDict[name].raisable and (self.playerDict[name].playerBet == self.currentBet))):
+                        print(self.status)
+                        playerIncrementalBet = self.playerDict[name].bettingPrompt(self.currentBet, 0)
+                        if playerIncrementalBet < 0: #player folds (no addition to pot)
+                            self.status = name + " folded."
+                            quitters.append(name)
+                        elif playerIncrementalBet == 0: #player checks (no addition to pot)
+                            self.status = name + " checked."      
+                        elif playerIncrementalBet > 0: #player calls or raises (addition to pot)
+                            if self.playerDict[name].playerBet == self.currentBet:
+                                self.status = name + " called bet of " + str(self.currentBet)
+                                self.pot += playerIncrementalBet 
+                            elif self.playerDict[name].playerBet > self.currentBet:
+                                self.currentBet = self.playerDict[name].playerBet
+                                self.pot += playerIncrementalBet
+                                self.status = name + " raised bet to " + str(self.currentBet)
+                            else:
+                                print("Error: playerBet is bigger than currentBet and was not flagged")
             for quitter in quitters:
                 if (quitter in self.lineUp): 
                     self.lineUp.remove(quitter)
@@ -89,14 +100,13 @@ class Game:
                 anotherRound = False
             else:
                 anotherRound = True
+                secondRound = True
                 reconcileRaise = True
 
         print("Betting round is done")
 
     def getBestHands(self):
         gameResults = {name: HandScore(self.gameDeck.communityCards, self.playerDict[name]) for name in self.lineUp}
-
-
 
     def winningHand(self):
         pass

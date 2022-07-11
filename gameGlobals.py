@@ -7,3 +7,5 @@ NUM_KINDS = len(KINDS)
 SUITS = ["C", "H", "S", "D"]
 NUM_SUITS = len(SUITS)
 ROUNDS = ["Pre-flop", "Flop", "Turn", "River"]
+
+print(KINDS[-1])

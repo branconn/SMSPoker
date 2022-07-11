@@ -1,5 +1,5 @@
 from gameGlobals import *
-
+from deck import Card
 """
 8000000 straightFlush = seq & flush
 7000000 fourOfKind = like4
@@ -25,16 +25,17 @@ class HandScore:
         self.score = 0
         print(self.cards)
 
+    # TODO: update methods to handle Card objects
     def sortCards(self):
-        self.cards.sort(key = lambda x: x[1]) # first sort by suit
-        self.cards.sort(key = lambda x: x[0], reverse = True) # second sort by kind (descending)
+        self.cards.sort(key = lambda x: x.suit) # first sort by suit
+        self.cards.sort(key = lambda x: x.kind, reverse = True) # second sort by kind (descending)
 
     def checkSeq(self):
         self.sortCards()
-        if self.cards[0][0] == 14: # if there is an Ace, represent it as high and low
-            lowAce = ([1, self.cards[0][1]])
-            # self.cards = list(self.cards + lowAce)
-            self.cards.append(lowAce)
+        for card in self.cards:
+            if card.kind == 12: # if there is an Ace, represent it as high and low
+                lowAce = Card(-1,card.suit)
+                self.cards.append(lowAce)
         cardVal = -1
         highCard = -1
         sequence = 1

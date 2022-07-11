@@ -2,14 +2,26 @@ from gameGlobals import *
 import random
 # terms: community cards, flop, turn, river
 
+class Card:
+    ### The Card class defines the attributes of a card, namely the <int>kind, <int>suit, and <String>name used for player readability
+    def __init__(self, kindInt, kindStr, suitInt, suitStr):
+        self.suit = suitInt
+        self.kind = kindInt
+        self.id = suitInt * NUM_KINDS + kindInt
+        self.name = kindStr + suitStr
 class Deck:
     def __init__(self):
         self.unplayedCards = []
         self.communityCards = []
-        for k in range(2, NUM_KINDS+2): # creating the deck as a nested list
-            for s in range(NUM_SUITS):
-                card = [k, s] # cards are defined as a list of kind and suit
-                self.unplayedCards.append(card)
+        # for k in range(NUM_KINDS): # creating the deck as a nested list
+        #     for s in range(NUM_SUITS):
+        #         card = [k, s] # cards are defined as a list of kind and suit
+        #         newCard = Card(k, s)
+        #         self.unplayedCards.append(newCard)
+        for kIndex , kTxt in enumerate(KINDS):
+            for sIndex , sTxt in enumerate(SUITS):
+                newCard = Card(kIndex, kTxt, sIndex, sTxt)
+                self.unplayedCards.append(newCard)
         self.shuffle() # the deck is shuffled on initialization
         
     def shuffle(self):
@@ -24,7 +36,7 @@ class Deck:
 
     def present(self):
         for card in self.unplayedCards:
-            print(card)
+            print(card.id)
 
 
 # deck_1 = Deck()
