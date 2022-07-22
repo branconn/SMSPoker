@@ -106,7 +106,7 @@ class Game:
         print("Betting round is done")
 
     def getBestHands(self):
-        gameResults = {name: HandScore(self.gameDeck.communityCards, self.playerDict[name]) for name in self.lineUp}
+        gameResults = {name: HandScore(self.gameDeck.communityCards, self.playerDict[name].hand) for name in self.lineUp}
 
     def winningHand(self):
         pass
