@@ -17,18 +17,12 @@ class Deck:
         self.unplayedCards = []
         self.communityCards = []
         self.cardDict = {}
-        # for k in range(NUM_KINDS): # creating the deck as a nested list
-        #     for s in range(NUM_SUITS):
-        #         card = [k, s] # cards are defined as a list of kind and suit
-        #         newCard = Card(k, s)
-        #         self.unplayedCards.append(newCard)
         for kIndex in range(NUM_KINDS):
             for sIndex in range(NUM_SUITS):
                 newCard = Card(kIndex, sIndex)
                 self.unplayedCards.append(newCard)
         if shuffled:
             self.shuffle() # the deck is shuffled on initialization
-        
         for ind, card in enumerate(self.unplayedCards):
             self.cardDict[card.name] = ind
 
