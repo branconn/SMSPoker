@@ -1,5 +1,5 @@
 from gameGlobals import *
-from deck import Card
+from deck import Card, Deck
 """
 8000000 straightFlush = seq & flush
 7000000 fourOfKind = like4
@@ -18,120 +18,139 @@ check for:
     high card "high"
 """
 class HandScore:
-    def __init__(self, c_cards, player):
-        self.player  = player
-        self.cards = list(c_cards + self.player.playerHand)
+    def __init__(self, c_cards, playerHand):
+        self.cards = list(c_cards + playerHand)
         self.hands = {}
-        self.score = 0
-        print(self.cards)
+        # [best hand, high card 1, high card 2, high card 3, buffer]
+        self.score = [0,0,0,0]
 
-    # TODO: update methods to handle Card objects
     def sortCards(self):
         self.cards.sort(key = lambda x: x.suit) # first sort by suit
         self.cards.sort(key = lambda x: x.kind, reverse = True) # second sort by kind (descending)
-
-    def checkSeq(self):
-        self.sortCards()
-        for card in self.cards:
-            if card.kind == 12: # if there is an Ace, represent it as high and low
-                lowAce = Card(-1,card.suit)
-                self.cards.append(lowAce)
-        cardVal = -1
-        highCard = -1
+ 
+    def checkSeq(self, *args):
+        prevCard = Card.dummy()
+        highCard = 0
+        kicker = 0
         sequence = 1
-        shortHand = self.cards
-        discard = []
-        for i in range(shortHand - 1):
-            if shortHand[i] == shortHand[i+1]-1:
-                sequence += 1
-                highCard = max(shortHand[i], highCard)
-            elif sequence >= 5:
-                discard.append(shortHand.pop(i))
-        for card in shortHand:
-            if card[0] == cardVal - 1:
-                sequence += 1
-                highCard = max(cardVal, highCard)
-            elif sequence < 5: # if the current card doesn't match the previous, and a straight is not made, reset sequence value
-                sequence = 1
-                highCard = -1
-            cardVal = card[0]
-        if sequence >= 5:
-            return highCard
+        straightScore = [0, 0, 0, 0]
+        if len(args) == 1:
+            copyHand = args[0]
+            copyHand.sort(key = lambda x: x.kind, reverse = True)
         else:
-            return -1
-
+            self.sortCards()
+            copyHand = self.cards 
+        for card in copyHand[:4]:     # if there is an Ace, represent it as high and low
+            if card.kind == 14: 
+                lowAce = Card(-1,card.suit)
+                copyHand.append(lowAce)
+        for index, card in enumerate(copyHand):
+            if card.kind != prevCard.kind - 1:
+                highPos = index
+                highCard = card.kind
+                sequence = 1
+            else:
+                sequence += 1
+            if sequence == 5:
+                break
+            prevCard = card
+        if sequence == 5:
+            kickers = list(copyHand[:highPos] + copyHand[(highPos+5):])
+            if copyHand[(highPos+4)].kind == 1:
+                kickers = [x for x in kickers if x.name != copyHand[(highPos+4)].name]
+            for card in kickers:
+                kicker = max(kicker, card.kind)
+            straightScore = [4, highCard, kicker, 0]
+        return straightScore
+    
     def checkLike(self):
         self.sortCards()
-        print(self.cards)
-        cardVal = -1
-        like = [[1,-1],[1,-1]]
-        likeInd = 0 # switches to second pair/kind after first
-        for card in self.cards:
-            if card[0] == cardVal:
-                like[likeInd][0] += 1
-                like[likeInd][1] = card[0]
-            elif like[0][0] > 1:
-                likeInd = 1
+        tempDeck = self.cards
+        pairs = []
+        kicker = 0
+        likeScore = [0,0,0,0]
 
-            cardVal = card[0]
-        like.sort(key = lambda x: x[0])
-        return like
+        for index, card in enumerate(tempDeck):
+            cardCount = sum(1 for c in tempDeck if c.kind == card.kind)
+            if cardCount > 1 and card.kind != tempDeck[index-1].kind:
+                pairs.append([cardCount, card.kind])
+            elif cardCount == 1:
+                kicker = max(kicker, card.kind)
+        
+        pairs.sort(key = lambda x: x[1], reverse = True) # sort by high card first (descending)
+        pairs.sort(key = lambda x: x[0], reverse = True) # then re-sort by number of matches (descending)
+
+        pairCount = len(pairs)
+        if pairCount != 0:
+            if pairs[0][0] == 4:                        # four of a kind (7)
+                if pairCount > 1:                       # edge case: four of kind + additional pair
+                    kicker = max(kicker, pairs[1][1])
+                likeScore = [7,pairs[0][1],kicker,0]
+            elif pairs[0][0] == 3:
+                if pairCount > 1:                       # full house (6)
+                    if pairs[1][0] > 2:                 # edge case: two three-of-kinds
+                        kicker = max(kicker, pairs[1][1])
+                    if pairCount > 2:                   # edge case: full house with additional pair
+                        kicker = max(kicker, pairs[2][1])
+                    likeScore = [6,pairs[0][1],pairs[1][1],kicker]
+                else:                                   # three of a kind (3)
+                    likeScore = [3,pairs[0][1],kicker,0]
+            elif pairs[0][0] == 2:
+                if pairCount > 1:                       # two pair (2)
+                    if pairCount > 2:                   # edge case: three pairs
+                        kicker = max(kicker, pairs[2][1])
+                    likeScore = [2,pairs[0][1], pairs[1][1],kicker]
+                else:                                   # one pair (1)
+                    likeScore = [1,pairs[0][1],kicker,0]
+        else:
+            likeScore[1] = kicker
+        return likeScore
 
     def checkFlush(self):
-        self.cards.sort(key = lambda x: x[1]) # sort by suit
-        likeSuit = 1
-        prevCard = [-1, -1]
-        highCard = -1
+        self.cards.sort(key = lambda x: x.kind, reverse = True) # sort by kind initially (descending)
+        self.cards.sort(key = lambda x: x.suit) # re-sort by suit
+        likeSuitCount = 1
+        prevCard = Card.dummy() # a dummy card is created for the intial comparison
+        kicker = 0
+        flushHigh = 0
+        flushSuit = -1
+        flushScore = straightFlushScore = [0,0,0,0]
+        flushDeck = []
+        
         for card in self.cards:
-            if card[1] == prevCard[1]:
-                likeSuit += 1
-                highCard = max(highCard, prevCard[0])
-            elif likeSuit < 5: # if current suits don't match and a flush has not been established:
-                likeSuit = 1 # reset flush count
-                highCard = -1 # reset high card
+            if card.suit == prevCard.suit:
+                likeSuitCount += 1
+                flushHigh = max(flushHigh, prevCard.kind)
+                if likeSuitCount > 4:                # if there is a flush
+                    flushSuit = card.suit       # then note the flush suit
+                if likeSuitCount > 5:
+                    kicker = max(kicker, card.kind)
+            elif likeSuitCount < 5:                  # if current suits don't match and a flush has not been established:
+                likeSuitCount = 1                    # reset flush count
+                flushHigh = 0                   # reset high card
+            else:
+                break
             prevCard = card
-        if likeSuit >= 5:
-            return highCard
-        else:
-            return -1
-    
-    def checkHigh(self):
-        self.cards.sort(key = lambda x: x[0])
-        return self.cards[0][0]
+
+        if flushSuit != -1:                     # if there is a flush
+            for card in self.cards:             # then identify the kicker
+                if card.suit != flushSuit:
+                    kicker = max(kicker, card.kind)
+                else:
+                    flushDeck.append(card)
+            straightFlushScore = self.checkSeq(flushDeck)
+            if straightFlushScore[0] == 4:
+                straightFlushScore[0] = 8
+                straightFlushScore[2] = max(kicker, straightFlushScore[2])
+                flushScore = straightFlushScore
+            else:
+                flushScore = [5,flushHigh,kicker,0]
+        return flushScore
 
     def bestPlay(self):
-        
-        high = self.checkHigh()
-        
-        ofKind = self.checkLike()
-        if ofKind[0][0] == 4:
-            score = 7000000 + 10000 * ofKind[0][1]
-            desc = "4 of kind, " + KINDS[ofKind[0][1]] + "s"
-            self.hands[score] = desc
-        elif ofKind[0][0] == 3 & ofKind[1][0] == 2:
-            score = 6000000 + 10000 * ofKind[0][1]
-            desc = "full house, " + KINDS[ofKind[0][1]] + "s and " + KINDS[ofKind[1][1]] + "s"
-            self.hands[score] = desc
-        elif ofKind[0][0] == 3:
-            score = 3000000 + 10000 * ofKind[0][1]
-            desc = "3 of kind, " + KINDS[0][1] + "s"
-        elif ofKind[0][0] == 2 & ofKind[1][0] == 2:
-            ofKind.sort(key = lambda x: x[1])
-            # if highest pair matches, win is decided by other pair, if both match, win is decided by high card
-            score = 2000000 + 10000 * ofKind[0][1] + 100 * ofKind[1][1] + 1 * high
-            desc = "two pair, " + KINDS[ofKind[0][1]] + "s and " + KINDS[ofKind[1][1]] + "s"
-        elif ofKind[0][0] == 2:
-            score = 1000000 + ofKind[0][1] + 10000 * high
+        highScore = max(self.checkFlush(), self.checkSeq(), self.checkLike())
+        self.score = highScore
+        return self.score
 
-        flush = self.checkFlush()
-
-
-        for score in self.hands:
-            maxScore = max(score, maxScore)
-        return {maxScore : self.hands[maxScore]}
-
-    #strike this from this class
-    def winningHand(self, playerHands):
-        pass
 
     

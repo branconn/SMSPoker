@@ -4,26 +4,32 @@ import random
 
 class Card:
     ### The Card class defines the attributes of a card, namely the <int>kind, <int>suit, and <String>name used for player readability
-    def __init__(self, kindInt, kindStr, suitInt, suitStr):
-        self.suit = suitInt
-        self.kind = kindInt
+    def __init__(self, kindInt, suitInt, fae=0):
+        self.suit = suitInt - fae
+        self.kind = kindInt + 2 - fae * 3
         self.id = suitInt * NUM_KINDS + kindInt
-        self.name = kindStr + suitStr
+        self.name = KINDS[kindInt] + SUITS[suitInt]
+    @classmethod
+    def dummy(cls):
+        return cls(0,0,1)
 class Deck:
-    def __init__(self):
+    def __init__(self, shuffled=True):
         self.unplayedCards = []
         self.communityCards = []
-        # for k in range(NUM_KINDS): # creating the deck as a nested list
-        #     for s in range(NUM_SUITS):
-        #         card = [k, s] # cards are defined as a list of kind and suit
-        #         newCard = Card(k, s)
-        #         self.unplayedCards.append(newCard)
-        for kIndex , kTxt in enumerate(KINDS):
-            for sIndex , sTxt in enumerate(SUITS):
-                newCard = Card(kIndex, kTxt, sIndex, sTxt)
+        self.cardDict = {}
+        for kIndex in range(NUM_KINDS):
+            for sIndex in range(NUM_SUITS):
+                newCard = Card(kIndex, sIndex)
                 self.unplayedCards.append(newCard)
-        self.shuffle() # the deck is shuffled on initialization
-        
+        if shuffled:
+            self.shuffle() # the deck is shuffled on initialization
+        for ind, card in enumerate(self.unplayedCards):
+            self.cardDict[card.name] = ind
+
+    @classmethod
+    def ordered(cls):
+        return cls(False)
+
     def shuffle(self):
         random.shuffle(self.unplayedCards)
 
@@ -34,10 +40,16 @@ class Deck:
         for i in range(times):
             self.communityCards.append(self.draw())
 
-    def present(self):
-        for card in self.unplayedCards:
-            print(card.id)
+    def present(self, cardArray):
+        for card in cardArray:
+            print(card.name)
 
+    def testHand(self, cardList):
+        hand = []
+        for cardStr in cardList:
+            index = self.cardDict[cardStr]
+            hand.append(self.unplayedCards[index])
+        return hand
 
 # deck_1 = Deck()
 # deck_1.present()
