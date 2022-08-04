@@ -35,7 +35,7 @@ class PlayerTestCase(unittest.TestCase):
         self.testPlayer.funds = 10
         self.assertFalse(self.testPlayer.bettingPrompt(self.testPlayer.funds + 1, 0))
     
-    @mock.patch('player.input', create = True)
+    @mock.patch('player.message.inputCL', create = True)
     def test_auto_fold(self, mocked_input):
         mocked_input.side_effect = ['10','idk','ten']
         result = self.testPlayer.bettingPrompt(30, 0)

@@ -17,6 +17,9 @@ check for:
     same kind of at least 2 "like"
     high card "high"
 """
+def winningHand(setOfHands):
+    return(max(setOfHands))
+
 class HandScore:
     def __init__(self, c_cards, playerHand):
         self.cards = list(c_cards + playerHand)
