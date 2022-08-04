@@ -1,5 +1,6 @@
 from gameGlobals import *
 import random
+import message
 # terms: community cards, flop, turn, river
 
 class Card:
@@ -40,9 +41,11 @@ class Deck:
         for i in range(times):
             self.communityCards.append(self.draw())
 
-    def present(self, cardArray):
-        for card in cardArray:
-            print(card.name)
+    def present(self):
+        cardsStr = " ".join(o.name for o in self.communityCards)
+        unflippedStr = " ".join(["[]"] * (5-len(self.communityCards)))
+        cardsStr = cardsStr + " " + unflippedStr
+        return cardsStr
 
     def testHand(self, cardList):
         hand = []
