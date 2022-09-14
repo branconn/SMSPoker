@@ -5,9 +5,7 @@ from game import Game
 # creating a dictionary of player objects 
 players = {dude: Player(dude) for dude in PLAYER_NAMES} 
 playerList = list(players)
-playOrder = lineUp = PLAYER_NAMES
-wcCost = 0.0089 * (9*len(lineUp)-4) + 0.0058 * (10*len(lineUp)+4)
-print("Worst-case cost-per-hand = $" + str(wcCost))    
+playOrder = lineUp = PLAYER_NAMES  
 stillFun = True
 gameCount = 0
 while stillFun:
